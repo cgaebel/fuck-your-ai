@@ -1,41 +1,21 @@
-import { TinyLlamaModel } from './tinyllama-model.js';
-import { Phi2Model } from './phi2-model.js';
-import { GemmaModel } from './gemma-model.js';
-import { MockModel } from './mock-model.js';
+import { GgufModel } from './gguf-model.js';
 import config from '../config.js';
 
 export class LlmModelFactory {
-  static createModel(modelType = config.model.type) {
-    console.log(`Creating model of type: ${modelType}`);
+  static createModel() {
+    console.log(`Creating GGUF model instance`);
     
-    switch (modelType.toLowerCase()) {
-      case 'tinyllama':
-        return new TinyLlamaModel({
-          modelPath: config.model.paths.tinyllama,
-          temperature: config.model.parameters.temperature,
-          topP: config.model.parameters.topP,
-          maxTokens: config.model.parameters.maxTokens
-        });
-      case 'phi2':
-        return new Phi2Model({
-          modelPath: config.model.paths.phi2,
-          temperature: config.model.parameters.temperature,
-          topP: config.model.parameters.topP,
-          maxTokens: config.model.parameters.maxTokens
-        });
-      case 'gemma':
-        return new GemmaModel({
-          modelPath: config.model.paths.gemma,
-          temperature: config.model.parameters.temperature,
-          topP: config.model.parameters.topP,
-          maxTokens: config.model.parameters.maxTokens
-        });
-      case 'mock':
-        return new MockModel();
-      // Add more model implementations here
-      default:
-        console.warn(`Model type '${modelType}' not recognized. Using Mock model as default.`);
-        return new MockModel();
-    }
+    // Create a GGUF model instance with the specified path and configuration
+    return new GgufModel({
+      modelPath: config.model.paths.gguf,
+      contextSize: config.model.parameters.contextSize || 2048,
+      temperature: config.model.parameters.temperature,
+      topP: config.model.parameters.topP,
+      maxTokens: config.model.parameters.maxTokens,
+      gpuLayers: config.model.parameters.gpuLayers || 0,
+      template: config.model.parameters.template,
+      chatFormat: config.model.parameters.chatFormat,
+      modelParams: config.model.parameters.modelParams || {}
+    });
   }
 }
