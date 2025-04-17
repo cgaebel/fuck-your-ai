@@ -29,39 +29,14 @@ app.get('/:word', async (req, res) => {
   }
 });
 
-// Home route
+// Redirect home to a default topic
 app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head>
-        <title>Fuck Your AI</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
-          h1 { color: #333; }
-          .container { max-width: 800px; margin: 0 auto; }
-          .instructions { background: #f4f4f4; padding: 20px; border-radius: 5px; }
-          code { background: #eee; padding: 2px 5px; border-radius: 3px; }
-          .model-info { margin-top: 20px; padding: 10px; background: #e6f7ff; border-radius: 5px; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <h1>Fuck Your AI</h1>
-          <div class="instructions">
-            <p>Enter a word in the URL to get a Wikipedia-style summary.</p>
-            <p>Example: <a href="/cat">localhost:${port}/cat</a></p>
-          </div>
-          <div class="model-info">
-            <p>Currently using: <strong>${config.model.type}</strong> model</p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `);
+  res.redirect('/wikipedia');
 });
 
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
   console.log(`Using LLM model: ${config.model.type}`);
+  console.log(`Visit http://localhost:${port}/cat (or any word) for a Wikipedia-style article`);
 });

@@ -6,8 +6,17 @@ export class LlmService {
   }
 
   async generateWikipediaSummary(word) {
-    // 1. Generate the raw summary text with improved prompt
-    const prompt = `Write a concise, factual Wikipedia-style summary about "${word}" in 3-4 sentences. Use an encyclopedic, neutral tone. Focus on providing a clear definition, key characteristics, historical context if relevant, and significance. Avoid opinions, first or second person, and promotional language.`;
+    // 1. Generate the raw summary text with improved prompt for longer content
+    const prompt = `Write a comprehensive, factual Wikipedia-style article about "${word}". 
+    
+Your response should be structured like a Wikipedia article with:
+- A detailed introduction providing a clear definition and context (2-3 paragraphs)
+- Historical background and development (2-3 paragraphs)
+- Key characteristics, components, or features (2-3 paragraphs)
+- Significance and impact (1-2 paragraphs)
+- Related concepts or examples (1-2 paragraphs)
+
+Use an encyclopedic, neutral tone. Include specific facts, dates, and examples where relevant. Avoid opinions, first or second person, and promotional language.`;
     
     const summaryText = await this.model.generateText(prompt);
 
@@ -33,7 +42,8 @@ export class LlmService {
     const uniqueWords = [...new Set(words)];
     
     // Select random words to link (up to 20 or all available if less)
-    return this._getRandomElements(uniqueWords, Math.min(20, uniqueWords.length));
+    // In the longer text, we want more links (40 instead of 20)
+    return this._getRandomElements(uniqueWords, Math.min(40, uniqueWords.length));
   }
 
   _isStopWord(word) {
@@ -60,19 +70,23 @@ export class LlmService {
       htmlContent = htmlContent.replace(regex, `<a href="/${word}">$&</a>`);
     });
 
+    // Format paragraphs for better readability
+    htmlContent = htmlContent.replace(/\n\n/g, '</p><p>');
+    htmlContent = `<p>${htmlContent}</p>`;
+
     // Wrap in HTML with some basic styling
     return `
       <html>
         <head>
-          <title>${title} - Fuck Your AI</title>
+          <title>${title}</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
             h1 { color: #333; }
             .container { max-width: 800px; margin: 0 auto; }
             .summary { background: #f9f9f9; padding: 20px; border-radius: 5px; }
+            .summary p { margin-bottom: 1em; }
             a { color: #0066cc; text-decoration: none; }
             a:hover { text-decoration: underline; }
-            .footer { margin-top: 30px; font-size: 0.8em; color: #777; }
           </style>
         </head>
         <body>
@@ -80,10 +94,6 @@ export class LlmService {
             <h1>${title}</h1>
             <div class="summary">
               ${htmlContent}
-            </div>
-            <div class="footer">
-              <p>Generated using a fast, small LLM running locally.</p>
-              <p><a href="/">Back to home</a></p>
             </div>
           </div>
         </body>

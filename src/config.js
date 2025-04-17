@@ -29,7 +29,7 @@ export default {
     },
     parameters: {
       temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.7'),
-      maxTokens: parseInt(process.env.MODEL_MAX_TOKENS || '400'),
+      maxTokens: parseInt(process.env.MODEL_MAX_TOKENS || '1600'),
       topP: parseFloat(process.env.MODEL_TOP_P || '0.9'),
     }
   }
