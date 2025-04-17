@@ -1,6 +1,6 @@
-const express = require('express');
-const { LlmService } = require('./services/llm-service');
-const config = require('./config');
+import express from 'express';
+import { LlmService } from './services/llm-service.js';
+import config from './config.js';
 
 const app = express();
 const port = config.port;

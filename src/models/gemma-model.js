@@ -1,56 +1,97 @@
-const { BaseModel } = require('./base-model');
-const { MockModel } = require('./mock-model');
-const path = require('path');
-const fs = require('fs');
+import { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs';
+import { BaseModel } from './base-model.js';
 
 /**
- * Gemma model implementation (simulated with MockModel)
+ * Gemma model implementation using node-llama-cpp
  */
-class GemmaModel extends BaseModel {
+export class GemmaModel extends BaseModel {
   constructor(config = {}) {
     super();
     this.config = {
-      modelPath: process.env.GEMMA_MODEL_PATH || path.join(__dirname, '../../models/gemma-2b-it.Q4_K_M.gguf'),
+      modelPath: config.modelPath || path.join(process.cwd(), 'models/gemma-2b-it.Q4_K_M.gguf'),
       contextSize: 2048,
       temperature: 0.7,
       topP: 0.9,
       maxTokens: 400,
       ...config
     };
-    
-    // Using mock model since we're having issues with node-llama-cpp
-    this.mockModel = new MockModel({ delay: 700 });
-    console.log('NOTE: Using MockModel to simulate Gemma due to compatibility issues');
+    this.model = null;
+    this.llama = null;
+    this.context = null;
   }
 
   async initialize() {
     try {
-      // Just check if model file exists but don't load it
+      // Check if model file exists
       if (!fs.existsSync(this.config.modelPath)) {
-        console.warn(`Model file not found at ${this.config.modelPath}, using mock responses`);
+        console.error(`Model file not found at ${this.config.modelPath}`);
+        console.error('Please download the Gemma model and set the correct path.');
+        console.error('You can download it from: https://huggingface.co/TheBloke/gemma-2b-it-GGUF');
+        throw new Error(`Model file not found at ${this.config.modelPath}`);
       }
+
+      // Import dynamically to avoid top-level await issues
+      const { getLlama, LlamaChatSession } = await import('node-llama-cpp');
       
-      await this.mockModel.initialize();
-      console.log('Gemma (simulated) initialized successfully');
-      return Promise.resolve();
+      // Initialize llama
+      this.llama = await getLlama();
+      
+      // Load the model
+      this.model = await this.llama.loadModel({
+        modelPath: this.config.modelPath,
+        contextSize: this.config.contextSize,
+        gpuLayers: 0 // Run on CPU
+      });
+      
+      // Create context
+      this.context = await this.model.createContext();
+      
+      // Create chat session with Gemma's chat format
+      this.session = new LlamaChatSession({
+        contextSequence: this.context.getSequence(),
+        template: "{prompt}"
+      });
+      
+      console.log('Gemma model initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize Gemma simulation:', error);
+      console.error('Failed to initialize Gemma model:', error);
       throw error;
     }
   }
 
   async generateText(prompt) {
+    if (!this.session) {
+      await this.initialize();
+    }
+
     try {
-      return await this.mockModel.generateText(prompt);
+      // Using Gemma's chat format
+      const formattedPrompt = `<start_of_turn>user
+${prompt}<end_of_turn>
+<start_of_turn>model`;
+      
+      const response = await this.session.prompt(formattedPrompt);
+      
+      // Clean up any response formatting tags
+      let cleanedResponse = response.trim();
+      if (cleanedResponse.endsWith('<end_of_turn>')) {
+        cleanedResponse = cleanedResponse.slice(0, -14).trim();
+      }
+      
+      return cleanedResponse;
     } catch (error) {
-      console.error('Error generating text with Gemma simulation:', error);
+      console.error('Error generating text with Gemma:', error);
       return 'Error generating text. Please try again.';
     }
   }
 
   async cleanup() {
-    await this.mockModel.cleanup();
+    // No explicit cleanup required
+    this.session = null;
+    this.context = null;
+    this.model = null;
+    this.llama = null;
   }
 }
-
-module.exports = { GemmaModel };

@@ -1,10 +1,10 @@
-const { TinyLlamaModel } = require('./tinyllama-model');
-const { Phi2Model } = require('./phi2-model');
-const { GemmaModel } = require('./gemma-model');
-const { MockModel } = require('./mock-model');
-const config = require('../config');
+import { TinyLlamaModel } from './tinyllama-model.js';
+import { Phi2Model } from './phi2-model.js';
+import { GemmaModel } from './gemma-model.js';
+import { MockModel } from './mock-model.js';
+import config from '../config.js';
 
-class LlmModelFactory {
+export class LlmModelFactory {
   static createModel(modelType = config.model.type) {
     console.log(`Creating model of type: ${modelType}`);
     
@@ -39,5 +39,3 @@ class LlmModelFactory {
     }
   }
 }
-
-module.exports = { LlmModelFactory };

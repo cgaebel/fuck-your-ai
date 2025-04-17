@@ -1,7 +1,7 @@
 /**
  * Base class for LLM implementations
  */
-class BaseModel {
+export class BaseModel {
   constructor() {
     if (this.constructor === BaseModel) {
       throw new Error('BaseModel is an abstract class and cannot be instantiated directly');
@@ -31,5 +31,3 @@ class BaseModel {
     throw new Error('Method cleanup() must be implemented by subclass');
   }
 }
-
-module.exports = { BaseModel };

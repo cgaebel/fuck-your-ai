@@ -1,9 +1,9 @@
-const { BaseModel } = require('./base-model');
+import { BaseModel } from './base-model.js';
 
 /**
  * Enhanced mock model implementation for development without needing to download models
  */
-class MockModel extends BaseModel {
+export class MockModel extends BaseModel {
   constructor(config = {}) {
     super();
     this.config = {
@@ -80,5 +80,3 @@ class MockModel extends BaseModel {
     return Promise.resolve();
   }
 }
-
-module.exports = { MockModel };

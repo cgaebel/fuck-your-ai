@@ -1,56 +1,84 @@
-const { BaseModel } = require('./base-model');
-const { MockModel } = require('./mock-model');
-const path = require('path');
-const fs = require('fs');
+import { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs';
+import { BaseModel } from './base-model.js';
 
 /**
- * Phi-2 model implementation (simulated with MockModel)
+ * Phi-2 model implementation using node-llama-cpp
  */
-class Phi2Model extends BaseModel {
+export class Phi2Model extends BaseModel {
   constructor(config = {}) {
     super();
     this.config = {
-      modelPath: process.env.PHI2_MODEL_PATH || path.join(__dirname, '../../models/phi-2.Q4_K_M.gguf'),
+      modelPath: config.modelPath || path.join(process.cwd(), 'models/phi-2.Q4_K_M.gguf'),
       contextSize: 2048,
       temperature: 0.7,
       topP: 0.9,
       maxTokens: 400,
       ...config
     };
-    
-    // Using mock model since we're having issues with node-llama-cpp
-    this.mockModel = new MockModel({ delay: 800 });
-    console.log('NOTE: Using MockModel to simulate Phi-2 due to compatibility issues');
+    this.model = null;
+    this.llama = null;
+    this.context = null;
   }
 
   async initialize() {
     try {
-      // Just check if model file exists but don't load it
+      // Check if model file exists
       if (!fs.existsSync(this.config.modelPath)) {
-        console.warn(`Model file not found at ${this.config.modelPath}, using mock responses`);
+        console.error(`Model file not found at ${this.config.modelPath}`);
+        console.error('Please download the Phi-2 model and set the correct path.');
+        console.error('You can download it from: https://huggingface.co/TheBloke/phi-2-GGUF');
+        throw new Error(`Model file not found at ${this.config.modelPath}`);
       }
+
+      // Import dynamically to avoid top-level await issues
+      const { getLlama, LlamaChatSession } = await import('node-llama-cpp');
       
-      await this.mockModel.initialize();
-      console.log('Phi-2 (simulated) initialized successfully');
-      return Promise.resolve();
+      // Initialize llama
+      this.llama = await getLlama();
+      
+      // Load the model
+      this.model = await this.llama.loadModel({
+        modelPath: this.config.modelPath,
+        contextSize: this.config.contextSize,
+        gpuLayers: 0 // Run on CPU
+      });
+      
+      // Create context
+      this.context = await this.model.createContext();
+      
+      // Create chat session
+      this.session = new LlamaChatSession({
+        contextSequence: this.context.getSequence()
+      });
+      
+      console.log('Phi-2 model initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize Phi-2 simulation:', error);
+      console.error('Failed to initialize Phi-2 model:', error);
       throw error;
     }
   }
 
   async generateText(prompt) {
+    if (!this.session) {
+      await this.initialize();
+    }
+
     try {
-      return await this.mockModel.generateText(prompt);
+      const response = await this.session.prompt(prompt);
+      return response.trim();
     } catch (error) {
-      console.error('Error generating text with Phi-2 simulation:', error);
+      console.error('Error generating text with Phi-2:', error);
       return 'Error generating text. Please try again.';
     }
   }
 
   async cleanup() {
-    await this.mockModel.cleanup();
+    // No explicit cleanup required
+    this.session = null;
+    this.context = null;
+    this.model = null;
+    this.llama = null;
   }
 }
-
-module.exports = { Phi2Model };

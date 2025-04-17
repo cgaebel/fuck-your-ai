@@ -1,6 +1,6 @@
-const { LlmModelFactory } = require('../models/llm-model-factory');
+import { LlmModelFactory } from '../models/llm-model-factory.js';
 
-class LlmService {
+export class LlmService {
   constructor(modelType = 'tinyllama') {
     this.model = LlmModelFactory.createModel(modelType);
   }
@@ -91,5 +91,3 @@ class LlmService {
     `;
   }
 }
-
-module.exports = { LlmService };
