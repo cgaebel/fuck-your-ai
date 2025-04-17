@@ -59,14 +59,14 @@ Use an encyclopedic, neutral tone. Include specific facts, dates, and examples w
   _createHtmlWithLinks(title, text, wordsToLink) {
     let htmlContent = text;
     
-    // Replace words with links (only first occurrence of each)
+    // Replace words with links - only the first occurrence of each word
     wordsToLink.forEach(word => {
-      // Create a regex that matches the word as a whole word, case insensitive
-      const regex = new RegExp(`\\b${word}\\b`, 'gi');
+      // Find the word as a whole word, case insensitive, but only the first occurrence
+      const regex = new RegExp(`\\b${word}\\b`, 'i'); // Removed 'g' flag to match only first occurrence
       
       // Check if the word exists in the content
       if (htmlContent.match(regex)) {
-        // Replace only the first occurrence to avoid excessive linking
+        // Replace only the first occurrence
         htmlContent = htmlContent.replace(regex, `<a href="/${word}">$&</a>`);
       }
     });
