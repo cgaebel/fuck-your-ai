@@ -5,11 +5,16 @@ import config from './config.js';
 const app = express();
 const port = config.port;
 
-// Initialize LLM service with configured model type
-const llmService = new LlmService(config.model.type);
+// Initialize LLM service
+const llmService = new LlmService();
 
 // Middleware
 app.use(express.json());
+
+// Ignore favicon requests
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
 
 // Route for generating Wikipedia-style summary
 app.get('/:word', async (req, res) => {
@@ -37,6 +42,6 @@ app.get('/', (req, res) => {
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
-  console.log(`Using LLM model: ${config.model.type}`);
+  console.log(`Using LLM model: GGUF (${config.model.paths.gguf})`);
   console.log(`Visit http://localhost:${port}/cat (or any word) for a Wikipedia-style article`);
 });

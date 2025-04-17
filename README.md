@@ -71,7 +71,7 @@ When downloading GGUF models, you'll see multiple versions with different file s
 | Q4_K_M    | 4-bit quantization  | Small     | Fast   | Good    |
 | Q8_0      | 8-bit quantization  | Largest   | Slowest| Highest |
 
-We recommend the **Q4_K_M** version for most use cases as it offers a good balance between size, speed, and quality.
+We use the **Q2_K** version by default for best performance with a smaller file size. The **Q4_K_M** version offers a better balance of quality and size if you prefer.
 
 ## Configuration
 

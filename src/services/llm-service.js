@@ -1,8 +1,8 @@
 import { LlmModelFactory } from '../models/llm-model-factory.js';
 
 export class LlmService {
-  constructor(modelType = 'tinyllama') {
-    this.model = LlmModelFactory.createModel(modelType);
+  constructor() {
+    this.model = LlmModelFactory.createModel();
   }
 
   async generateWikipediaSummary(word) {
@@ -41,7 +41,7 @@ Use an encyclopedic, neutral tone. Include specific facts, dates, and examples w
     // Deduplicate words
     const uniqueWords = [...new Set(words)];
     
-    return this._getRandomElements(uniqueWords, Math.min(10, uniqueWords.length));
+    return this._getRandomElements(uniqueWords, Math.min(20, uniqueWords.length));
   }
 
   _isStopWord(word) {
@@ -59,13 +59,16 @@ Use an encyclopedic, neutral tone. Include specific facts, dates, and examples w
   _createHtmlWithLinks(title, text, wordsToLink) {
     let htmlContent = text;
     
-    // Replace words with links
+    // Replace words with links (only first occurrence of each)
     wordsToLink.forEach(word => {
       // Create a regex that matches the word as a whole word, case insensitive
       const regex = new RegExp(`\\b${word}\\b`, 'gi');
       
-      // Replace only the first occurrence to avoid recursive linking
-      htmlContent = htmlContent.replace(regex, `<a href="/${word}">$&</a>`);
+      // Check if the word exists in the content
+      if (htmlContent.match(regex)) {
+        // Replace only the first occurrence to avoid excessive linking
+        htmlContent = htmlContent.replace(regex, `<a href="/${word}">$&</a>`);
+      }
     });
 
     // Format paragraphs for better readability

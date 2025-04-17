@@ -5,7 +5,7 @@ This directory is for storing downloaded GGUF model files.
 ## Default Model
 
 The application uses TinyLlama by default if no model is specified:
-- **TinyLlama (1.1B)**: `tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf` (~600MB)
+- **TinyLlama (1.1B)**: `tinyllama-1.1b-chat-v1.0.Q2_K.gguf` (~350MB)
 
 ## Recommended Models
 

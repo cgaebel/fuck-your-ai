@@ -89,7 +89,7 @@ GGUF models typically come in multiple quantization versions, identified by suff
 | Q6_K      | 6-bit quantization         | Larger    | Slower          | Best    |
 | Q8_0      | 8-bit quantization         | Largest   | Slowest         | Highest |
 
-For most use cases, the `Q4_K_M` version offers an excellent balance between file size, speed, and quality.
+For most use cases, the `Q4_K_M` version offers a good balance of quality and size, while `Q2_K` offers the fastest performance with a smaller file size.
 
 ## Model Comparison
 

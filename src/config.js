@@ -27,7 +27,7 @@ const parseJsonConfig = (envVar, defaultValue = {}) => {
 };
 
 // Default to TinyLlama if no model is specified
-const DEFAULT_MODEL_PATH = resolveProjectPath('models/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf');
+const DEFAULT_MODEL_PATH = resolveProjectPath('models/tinyllama-1.1b-chat-v1.0.Q2_K.gguf');
 
 export default {
   // Server configuration
