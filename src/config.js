@@ -28,9 +28,9 @@ export default {
       gemma: process.env.GEMMA_MODEL_PATH || resolveProjectPath('models/gemma-2b-it.Q4_K_M.gguf'),
     },
     parameters: {
-      temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.7'),
-      maxTokens: parseInt(process.env.MODEL_MAX_TOKENS || '1600'),
-      topP: parseFloat(process.env.MODEL_TOP_P || '0.9'),
+      temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.2'),
+      maxTokens: parseInt(process.env.MODEL_MAX_TOKENS || '600'),
+      topP: parseFloat(process.env.MODEL_TOP_P || '0.7'),
     }
   }
 };

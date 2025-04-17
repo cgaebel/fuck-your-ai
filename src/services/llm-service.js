@@ -41,9 +41,7 @@ Use an encyclopedic, neutral tone. Include specific facts, dates, and examples w
     // Deduplicate words
     const uniqueWords = [...new Set(words)];
     
-    // Select random words to link (up to 20 or all available if less)
-    // In the longer text, we want more links (40 instead of 20)
-    return this._getRandomElements(uniqueWords, Math.min(40, uniqueWords.length));
+    return this._getRandomElements(uniqueWords, Math.min(10, uniqueWords.length));
   }
 
   _isStopWord(word) {
