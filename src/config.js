@@ -29,6 +29,7 @@ const parseJsonConfig = (envVar, defaultValue = {}) => {
 // Default to TinyLlama if no model is specified
 const DEFAULT_MODEL_PATH = resolveProjectPath('models/tinyllama-1.1b-chat-v1.0.Q2_K.gguf');
 
+// App configuration with defaults
 export default {
   // Server configuration
   port: process.env.PORT || 3000,
@@ -41,20 +42,18 @@ export default {
     },
     
     parameters: {
+      // Generation parameters
       temperature: parseFloat(process.env.MODEL_TEMPERATURE || '0.2'),
       maxTokens: parseInt(process.env.MODEL_MAX_TOKENS || '600'),
       topP: parseFloat(process.env.MODEL_TOP_P || '0.7'),
       contextSize: parseInt(process.env.MODEL_CONTEXT_SIZE || '2048'),
       gpuLayers: parseInt(process.env.MODEL_GPU_LAYERS || '0'),
       
-      // Chat format for specific models (gemma, llama, mistral, etc.)
-      // Default to llama format for TinyLlama
+      // Model format configuration
       chatFormat: process.env.MODEL_CHAT_FORMAT || 'llama',
-      
-      // Template for prompt formatting
       template: process.env.MODEL_TEMPLATE || "{prompt}",
       
-      // Advanced model parameters (JSON string in env)
+      // Advanced parameters (as JSON)
       modelParams: parseJsonConfig(process.env.MODEL_PARAMS)
     }
   }

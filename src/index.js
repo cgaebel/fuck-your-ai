@@ -42,6 +42,7 @@ app.get('/', (req, res) => {
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
-  console.log(`Using LLM model: GGUF (${config.model.paths.gguf})`);
+  console.log(`Using LLM model: ${config.model.paths.gguf}`);
+  console.log(`Format: ${config.model.parameters.chatFormat}, Temperature: ${config.model.parameters.temperature}`);
   console.log(`Visit http://localhost:${port}/cat (or any word) for a Wikipedia-style article`);
 });

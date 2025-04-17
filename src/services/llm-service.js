@@ -28,32 +28,24 @@ Use an encyclopedic, neutral tone. Include specific facts, dates, and examples w
   }
 
   _extractLinkableWords(text) {
-    // Extract meaningful nouns and terms from the text
-    const words = text
-      .replace(/[.,?!;()\[\]{}'\\\/"]/g, '') // Remove punctuation
-      .split(/\s+/) // Split by whitespace
-      .map(word => word.toLowerCase())
-      .filter(word => 
-        word.length > 3 && // Only words longer than 3 chars
-        !this._isStopWord(word) // Filter out common stop words
-      );
-    
-    // Deduplicate words
-    const uniqueWords = [...new Set(words)];
-    
-    return this._getRandomElements(uniqueWords, Math.min(20, uniqueWords.length));
-  }
-
-  _isStopWord(word) {
-    const stopWords = ['the', 'and', 'but', 'for', 'nor', 'yet', 'with', 'about', 'from', 
+    // Common stop words to filter out
+    const stopWords = new Set(['the', 'and', 'but', 'for', 'nor', 'yet', 'with', 'about', 'from', 
                       'then', 'than', 'that', 'this', 'those', 'these', 'were', 'been',
-                      'have', 'will', 'they', 'their', 'there', 'which', 'when', 'what'];
-    return stopWords.includes(word);
-  }
+                      'have', 'will', 'they', 'their', 'there', 'which', 'when', 'what']);
 
-  _getRandomElements(array, count) {
-    const shuffled = [...array].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
+    // Process text to find linkable words in one pass
+    const uniqueWords = [...new Set(
+      text
+        .replace(/[.,?!;()\[\]{}'\\\/"]/g, '') // Remove punctuation
+        .split(/\s+/) // Split by whitespace
+        .map(word => word.toLowerCase())
+        .filter(word => word.length > 3 && !stopWords.has(word)) // Only meaningful words
+    )];
+    
+    // Get random selection of words to link (max 20)
+    return uniqueWords
+      .sort(() => 0.5 - Math.random())
+      .slice(0, Math.min(20, uniqueWords.length));
   }
 
   _createHtmlWithLinks(title, text, wordsToLink) {
@@ -61,21 +53,15 @@ Use an encyclopedic, neutral tone. Include specific facts, dates, and examples w
     
     // Replace words with links - only the first occurrence of each word
     wordsToLink.forEach(word => {
-      // Find the word as a whole word, case insensitive, but only the first occurrence
-      const regex = new RegExp(`\\b${word}\\b`, 'i'); // Removed 'g' flag to match only first occurrence
-      
-      // Check if the word exists in the content
+      const regex = new RegExp(`\\b${word}\\b`, 'i'); // Case insensitive, whole word match
       if (htmlContent.match(regex)) {
-        // Replace only the first occurrence
         htmlContent = htmlContent.replace(regex, `<a href="/${word}">$&</a>`);
       }
     });
 
-    // Format paragraphs for better readability
-    htmlContent = htmlContent.replace(/\n\n/g, '</p><p>');
-    htmlContent = `<p>${htmlContent}</p>`;
-
-    // Wrap in HTML with some basic styling
+    // Format paragraphs and wrap in styled HTML
+    htmlContent = `<p>${htmlContent.replace(/\n\n/g, '</p><p>')}</p>`;
+    
     return `
       <html>
         <head>
@@ -93,9 +79,7 @@ Use an encyclopedic, neutral tone. Include specific facts, dates, and examples w
         <body>
           <div class="container">
             <h1>${title}</h1>
-            <div class="summary">
-              ${htmlContent}
-            </div>
+            <div class="summary">${htmlContent}</div>
           </div>
         </body>
       </html>

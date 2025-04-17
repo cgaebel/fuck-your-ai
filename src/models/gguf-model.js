@@ -77,81 +77,67 @@ export class GgufModel extends BaseModel {
     }
   }
 
+  // Chat format templates for different model types
+  static formatTemplates = {
+    'gemma': {
+      promptTemplate: (prompt) => `<start_of_turn>user\n${prompt}<end_of_turn>\n<start_of_turn>model`,
+      responseCleanup: (resp) => resp.endsWith('<end_of_turn>') ? resp.slice(0, -14).trim() : resp
+    },
+    'llama': {
+      promptTemplate: (prompt) => `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`,
+      responseCleanup: (resp) => resp.endsWith('<|im_end|>') ? resp.slice(0, -10).trim() : resp
+    },
+    'mistral': {
+      promptTemplate: (prompt) => `[INST] ${prompt} [/INST]`
+    },
+    'chatgpt': {
+      promptTemplate: (prompt) => `USER: ${prompt}\nASSISTANT:`
+    },
+    'openai': {
+      promptTemplate: (prompt) => `USER: ${prompt}\nASSISTANT:`
+    },
+    'alpaca': {
+      promptTemplate: (prompt) => `### Instruction:\n${prompt}\n\n### Response:`
+    },
+    'vicuna': {
+      promptTemplate: (prompt) => `USER: ${prompt}\n\nASSISTANT:`
+    },
+    'chatml': {
+      promptTemplate: (prompt) => `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant`,
+      responseCleanup: (resp) => resp.endsWith('<|im_end|>') ? resp.slice(0, -10).trim() : resp
+    },
+    'zephyr': {
+      promptTemplate: (prompt) => `<|user|>\n${prompt}<|endoftext|>\n<|assistant|>`,
+      responseCleanup: (resp) => resp.endsWith('<|endoftext|>') ? resp.slice(0, -13).trim() : resp
+    }
+  };
+
   async generateText(prompt) {
     if (!this.session) {
       await this.initialize();
     }
 
     try {
-      // Apply chat format if specified
-      let formattedPrompt = prompt;
+      // Get format configuration or use default
+      const formatKey = this.config.chatFormat?.toLowerCase();
+      const format = formatKey && GgufModel.formatTemplates[formatKey];
       
-      if (this.config.chatFormat) {
-        switch (this.config.chatFormat.toLowerCase()) {
-          case 'gemma':
-            formattedPrompt = `<start_of_turn>user\n${prompt}<end_of_turn>\n<start_of_turn>model`;
-            break;
-          case 'llama':
-            formattedPrompt = `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
-            break;
-          case 'mistral':
-            formattedPrompt = `[INST] ${prompt} [/INST]`;
-            break;
-          case 'chatgpt':
-          case 'openai':
-            formattedPrompt = `USER: ${prompt}\nASSISTANT:`;
-            break;
-          case 'alpaca':
-            formattedPrompt = `### Instruction:\n${prompt}\n\n### Response:`;
-            break;
-          case 'vicuna':
-            formattedPrompt = `USER: ${prompt}\n\nASSISTANT:`;
-            break;
-          case 'chatml':
-            formattedPrompt = `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant`;
-            break;
-          case 'zephyr':
-            formattedPrompt = `<|user|>\n${prompt}<|endoftext|>\n<|assistant|>`;
-            break;
-          // Add more chat formats as needed
-          default:
-            // Use raw prompt if format is not recognized
-            console.warn(`Unknown chat format: ${this.config.chatFormat}. Using raw prompt.`);
-            break;
-        }
-      }
+      // Format the prompt using the template
+      const formattedPrompt = format ? 
+        format.promptTemplate(prompt) : 
+        prompt;
       
+      // Generate response
       const response = await this.session.prompt(formattedPrompt, {
         temperature: this.config.temperature,
         topP: this.config.topP,
         maxTokens: this.config.maxTokens
       });
       
-      // Clean up response based on chat format
+      // Clean up response if needed
       let cleanedResponse = response.trim();
-      
-      if (this.config.chatFormat) {
-        switch (this.config.chatFormat.toLowerCase()) {
-          case 'gemma':
-            if (cleanedResponse.endsWith('<end_of_turn>')) {
-              cleanedResponse = cleanedResponse.slice(0, -14).trim();
-            }
-            break;
-          case 'llama':
-          case 'chatml':
-            if (cleanedResponse.endsWith('<|im_end|>')) {
-              cleanedResponse = cleanedResponse.slice(0, -10).trim();
-            }
-            break;
-          case 'zephyr':
-            if (cleanedResponse.endsWith('<|endoftext|>')) {
-              cleanedResponse = cleanedResponse.slice(0, -13).trim();
-            }
-            break;
-          default:
-            // No special cleanup for other formats
-            break;
-        }
+      if (format && format.responseCleanup) {
+        cleanedResponse = format.responseCleanup(cleanedResponse);
       }
       
       return cleanedResponse;
